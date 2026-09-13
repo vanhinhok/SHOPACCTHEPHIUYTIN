@@ -48,7 +48,7 @@
         <input type="number" id="acc_price" placeholder="Giá">
         <input type="text" id="acc_rank" placeholder="Rank">
         <input type="number" id="acc_skin" placeholder="Skin">
-        <input type="file" id="acc_image" accept="image/*" >
+        <input type="file" id="acc_image" accept="image/*" multiple>
         <button class="btn" onclick="addAcc()">+ Thêm</button>
     </div>
 
@@ -74,7 +74,7 @@
                 <option value="sold">Đã bán</option>
             </select>
             <label style="color:#888;font-size:12px">Đổi ảnh (bỏ trống nếu giữ nguyên):</label>
-            <input type="file" id="edit_image" accept="image/*" >
+            <input type="file" id="edit_image" accept="image/*" multiple>
             <div class="preview-grid" id="edit_preview"></div>
             <div class="modal-btns">
                 <button class="btn btn-edit" onclick="saveEdit()">💾 Lưu</button>

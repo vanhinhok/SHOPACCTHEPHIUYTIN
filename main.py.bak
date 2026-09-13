@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-# SHOPACC THEPHI - Gộp shop + admin, dùng PostgreSQL
+# SHOPACC THEPHI - Gộp shop + admin, PostgreSQL + Cloudinary
 
 from flask import Flask, render_template, request, jsonify, session, redirect, url_for, send_from_directory
 import os, secrets, time, hashlib
@@ -8,6 +8,8 @@ from functools import wraps
 from werkzeug.utils import secure_filename
 import psycopg2
 from psycopg2.extras import RealDictCursor
+import cloudinary
+import cloudinary.uploader
 
 app = Flask(__name__, template_folder="templates", static_folder="static", static_url_path="/static")
 app.secret_key = secrets.token_hex(32)
@@ -18,6 +20,13 @@ ALLOWED_EXTENSIONS = {"png", "jpg", "jpeg", "gif", "webp"}
 os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 app.config["UPLOAD_FOLDER"] = UPLOAD_FOLDER
 app.config["MAX_CONTENT_LENGTH"] = 20 * 1024 * 1024
+
+# ========== CLOUDINARY ==========
+cloudinary.config(
+    cloud_name=os.environ.get("CLOUDINARY_CLOUD_NAME"),
+    api_key=os.environ.get("CLOUDINARY_API_KEY"),
+    api_secret=os.environ.get("CLOUDINARY_API_SECRET")
+)
 
 # ========== DATABASE ==========
 def get_conn():
@@ -112,6 +121,7 @@ def get_accounts_admin():
     cur.close(); conn.close()
     return jsonify({r["id"]: dict(r) for r in rows})
 
+# ========== UPLOAD (CLOUDINARY) ==========
 @app.route("/api/upload", methods=["POST"])
 @login_required
 def upload_image():
@@ -121,11 +131,11 @@ def upload_image():
     urls = []
     for file in files:
         if file and file.filename and allowed_file(file.filename):
-            ext = file.filename.rsplit(".", 1)[1].lower()
-            filename = f"{secrets.token_hex(8)}.{ext}"
-            filepath = os.path.join(app.config["UPLOAD_FOLDER"], filename)
-            file.save(filepath)
-            urls.append(f"/static/uploads/{filename}")
+            try:
+                result = cloudinary.uploader.upload(file)
+                urls.append(result["secure_url"])
+            except Exception as e:
+                return jsonify({"success": False, "error": str(e)})
     if urls:
         return jsonify({"success": True, "urls": urls})
     return jsonify({"success": False, "error": "Không có file hợp lệ"})
@@ -186,7 +196,7 @@ def delete_account(acc_id):
     cur.close(); conn.close()
     return jsonify({"success": True})
 
-# ========== SERVE UPLOAD ==========
+# ========== SERVE UPLOAD (fallback) ==========
 @app.route("/static/uploads/<filename>")
 def uploaded_file(filename):
     return send_from_directory(UPLOAD_FOLDER, filename)
