@@ -1,55 +1,39 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-# SHOPACC THEPHI - Gộp shop + admin, dùng PostgreSQL
+# SHOPACC THEPHI - Gộp shop + admin vào 1 file
 
 from flask import Flask, render_template, request, jsonify, session, redirect, url_for, send_from_directory
-import os, secrets, time, hashlib
+import json, os, secrets, time, hashlib
 from functools import wraps
 from werkzeug.utils import secure_filename
-import psycopg2
-from psycopg2.extras import RealDictCursor
 
 app = Flask(__name__, template_folder="templates", static_folder="static", static_url_path="/static")
 app.secret_key = secrets.token_hex(32)
 
-DATABASE_URL = os.environ.get("DATABASE_URL")
+DB_FILE = "database.json"
 UPLOAD_FOLDER = "static/uploads"
 ALLOWED_EXTENSIONS = {"png", "jpg", "jpeg", "gif", "webp"}
 os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 app.config["UPLOAD_FOLDER"] = UPLOAD_FOLDER
 app.config["MAX_CONTENT_LENGTH"] = 20 * 1024 * 1024
 
-# ========== DATABASE ==========
-def get_conn():
-    return psycopg2.connect(DATABASE_URL, sslmode="require")
-
-def init_db():
-    conn = get_conn()
-    cur = conn.cursor()
-    cur.execute("""
-        CREATE TABLE IF NOT EXISTS accounts (
-            id VARCHAR(20) PRIMARY KEY,
-            name TEXT, username TEXT, price INT,
-            rank TEXT, skin INT, status TEXT,
-            images TEXT[], created_at FLOAT
-        )
-    """)
-    cur.execute("""
-        CREATE TABLE IF NOT EXISTS admins (
-            username TEXT PRIMARY KEY, password TEXT
-        )
-    """)
-    cur.execute("SELECT COUNT(*) FROM admins")
-    if cur.fetchone()[0] == 0:
-        cur.execute("INSERT INTO admins (username, password) VALUES (%s, %s)",
-                    ("admin", hashlib.sha256("admin123".encode()).hexdigest()))
-    conn.commit()
-    cur.close(); conn.close()
-
-init_db()
-
 def allowed_file(filename):
     return "." in filename and filename.rsplit(".", 1)[1].lower() in ALLOWED_EXTENSIONS
+
+# ========== DATABASE ==========
+def load_db():
+    if not os.path.exists(DB_FILE):
+        return {
+            "admins": {"admin": hashlib.sha256("admin123".encode()).hexdigest()},
+            "accounts": {},
+            "orders": {}
+        }
+    with open(DB_FILE, "r", encoding="utf-8") as f:
+        return json.load(f)
+
+def save_db(db):
+    with open(DB_FILE, "w", encoding="utf-8") as f:
+        json.dump(db, f, indent=2, ensure_ascii=False)
 
 # ========== DECORATOR ==========
 def login_required(f):
@@ -67,12 +51,19 @@ def shop():
 
 @app.route("/api/accounts", methods=["GET"])
 def get_accounts_public():
-    conn = get_conn()
-    cur = conn.cursor(cursor_factory=RealDictCursor)
-    cur.execute("SELECT id, name, price, rank, skin, status, images FROM accounts")
-    rows = cur.fetchall()
-    cur.close(); conn.close()
-    return jsonify({r["id"]: dict(r) for r in rows})
+    db = load_db()
+    safe = {}
+    for k, v in db["accounts"].items():
+        safe[k] = {
+            "id": k,
+            "name": v.get("name"),
+            "price": v.get("price"),
+            "rank": v.get("rank"),
+            "skin": v.get("skin"),
+            "status": v.get("status", "available"),
+            "images": v.get("images", [])
+        }
+    return jsonify(safe)
 
 # ========== ADMIN ==========
 @app.route("/login", methods=["GET", "POST"])
@@ -81,12 +72,8 @@ def login():
         u = request.form.get("username")
         p = request.form.get("password")
         h = hashlib.sha256(p.encode()).hexdigest()
-        conn = get_conn()
-        cur = conn.cursor()
-        cur.execute("SELECT password FROM admins WHERE username=%s", (u,))
-        row = cur.fetchone()
-        cur.close(); conn.close()
-        if row and row[0] == h:
+        db = load_db()
+        if u in db["admins"] and db["admins"][u] == h:
             session["user"] = u
             return redirect(url_for("admin_panel"))
         return render_template("login.html", error="Sai tài khoản!")
@@ -105,12 +92,8 @@ def admin_panel():
 @app.route("/api/accounts/all", methods=["GET"])
 @login_required
 def get_accounts_admin():
-    conn = get_conn()
-    cur = conn.cursor(cursor_factory=RealDictCursor)
-    cur.execute("SELECT * FROM accounts ORDER BY created_at DESC")
-    rows = cur.fetchall()
-    cur.close(); conn.close()
-    return jsonify({r["id"]: dict(r) for r in rows})
+    db = load_db()
+    return jsonify(db["accounts"])
 
 @app.route("/api/upload", methods=["POST"])
 @login_required
@@ -134,57 +117,46 @@ def upload_image():
 @login_required
 def add_account():
     data = request.json
+    db = load_db()
     acc_id = "ACC" + secrets.token_hex(4).upper()
-    conn = get_conn()
-    cur = conn.cursor()
-    cur.execute("""
-        INSERT INTO accounts (id, name, username, price, rank, skin, status, images, created_at)
-        VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)
-    """, (
-        acc_id,
-        data.get("name", "Acc FF"),
-        data.get("username", ""),
-        data.get("price", 0),
-        data.get("rank", "Kim Cương"),
-        data.get("skin", 0),
-        "available",
-        data.get("images", []),
-        time.time()
-    ))
-    conn.commit()
-    cur.close(); conn.close()
+    db["accounts"][acc_id] = {
+        "id": acc_id,
+        "name": data.get("name", "Acc FF"),
+        "username": data.get("username", ""),
+        "price": data.get("price", 0),
+        "rank": data.get("rank", "Kim Cương"),
+        "skin": data.get("skin", 0),
+        "status": "available",
+        "images": data.get("images", []),
+        "created_at": time.time()
+    }
+    save_db(db)
     return jsonify({"success": True, "id": acc_id})
 
 @app.route("/api/accounts/edit/<acc_id>", methods=["POST"])
 @login_required
 def edit_account(acc_id):
     data = request.json
-    conn = get_conn()
-    cur = conn.cursor()
-    fields = []
-    values = []
-    for f in ["name", "username", "price", "rank", "skin", "images", "status"]:
-        if f in data:
-            fields.append(f"{f}=%s")
-            values.append(data[f])
-    if not fields:
-        cur.close(); conn.close()
-        return jsonify({"success": False, "error": "Không có dữ liệu"})
-    values.append(acc_id)
-    cur.execute(f"UPDATE accounts SET {','.join(fields)} WHERE id=%s", values)
-    conn.commit()
-    cur.close(); conn.close()
+    db = load_db()
+    if acc_id not in db["accounts"]:
+        return jsonify({"success": False, "error": "Acc không tồn tại"}), 404
+    acc = db["accounts"][acc_id]
+    for field in ["name", "username", "price", "rank", "skin", "images", "status"]:
+        if field in data:
+            acc[field] = data[field]
+    acc["updated_at"] = time.time()
+    save_db(db)
     return jsonify({"success": True})
 
 @app.route("/api/accounts/delete/<acc_id>", methods=["DELETE"])
 @login_required
 def delete_account(acc_id):
-    conn = get_conn()
-    cur = conn.cursor()
-    cur.execute("DELETE FROM accounts WHERE id=%s", (acc_id,))
-    conn.commit()
-    cur.close(); conn.close()
-    return jsonify({"success": True})
+    db = load_db()
+    if acc_id in db["accounts"]:
+        del db["accounts"][acc_id]
+        save_db(db)
+        return jsonify({"success": True})
+    return jsonify({"success": False}), 404
 
 # ========== SERVE UPLOAD ==========
 @app.route("/static/uploads/<filename>")
