@@ -1,0 +1,220 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SHOPACC THEPHI</title>
+    <style>
+        *{margin:0;padding:0;box-sizing:border-box}
+        body{background:#0d0d0d;color:#fff;font-family:'Segoe UI',sans-serif}
+        .header{background:#000;padding:15px 30px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid #222;position:sticky;top:0;z-index:100}
+        .logo{font-size:22px;font-weight:bold;color:#ff5500}
+        .logo span{color:#fff}
+        .zalo-btn{background:#0068ff;color:#fff;padding:8px 16px;border-radius:6px;text-decoration:none;font-size:14px;font-weight:bold}
+        .container{max-width:1200px;margin:30px auto;padding:0 20px}
+        .title{text-align:center;margin-bottom:30px}
+        .title h1{color:#ff5500;font-size:32px}
+        .title p{color:#666;margin-top:5px}
+        .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:20px}
+        .card{background:#1a1a1a;border:1px solid #2a2a2a;border-radius:12px;overflow:hidden;transition:.3s}
+        .card:hover{transform:translateY(-5px);border-color:#ff5500;box-shadow:0 10px 30px rgba(255,85,0,.2)}
+        .card-img{height:180px;background:linear-gradient(135deg,#2a1a0a,#1a1a1a);display:flex;align-items:center;justify-content:center;font-size:50px;overflow:hidden;position:relative}
+        .card-img img{width:100%;height:100%;object-fit:cover}
+        .img-badge{position:absolute;top:8px;right:8px;background:rgba(0,0,0,.75);color:#fff;padding:2px 8px;border-radius:12px;font-size:11px}
+        .card-body{padding:15px}
+        .card-body h3{font-size:16px;margin-bottom:8px}
+        .info{display:flex;justify-content:space-between;font-size:13px;color:#888;margin-bottom:5px}
+        .price{color:#ff5500;font-size:20px;font-weight:bold;margin:10px 0}
+        .btn-group{display:flex;gap:8px;margin-top:8px}
+        .btn-buy{flex:1;padding:10px;background:#0068ff;border:none;border-radius:6px;color:#fff;font-weight:bold;cursor:pointer;font-size:13px}
+        .btn-buy:hover{background:#0055dd}
+        .btn-buy:disabled{background:#333;cursor:not-allowed}
+        .btn-detail{flex:1;padding:10px;background:#333;border:none;border-radius:6px;color:#fff;font-weight:bold;cursor:pointer;font-size:13px}
+        .btn-detail:hover{background:#444}
+        .sold{opacity:.5}
+        .modal{display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,.8);z-index:200;justify-content:center;align-items:center;padding:20px}
+        .modal-box{background:#1a1a1a;border:1px solid #ff5500;border-radius:12px;padding:25px;max-width:550px;width:100%;max-height:90vh;overflow-y:auto}
+        .modal-box h2{color:#ff5500;margin-bottom:15px;text-align:center}
+        .info-box{background:#0d0d0d;border-radius:8px;padding:15px;margin:15px 0;font-size:14px}
+        .row{display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid #1a1a1a}
+        .row:last-child{border-bottom:none}
+        .row .label{color:#888}
+        .row .value{font-weight:bold}
+        .gallery{display:grid;grid-template-columns:repeat(3,1fr);gap:5px;margin-top:10px}
+        .gallery img{width:100%;height:80px;object-fit:cover;border-radius:6px;cursor:pointer;border:1px solid #2a2a3a}
+        .gallery img:hover{border-color:#ff5500}
+        .zalo-link{display:inline-block;padding:12px 30px;background:#0068ff;color:#fff;text-decoration:none;border-radius:8px;font-weight:bold;font-size:15px;text-align:center;width:100%}
+        .zalo-link:hover{background:#0055dd}
+        .close-btn{padding:10px 24px;background:#333;border:none;border-radius:6px;color:#fff;cursor:pointer;margin-top:15px;width:100%}
+        .close-btn:hover{background:#444}
+        .footer{text-align:center;padding:20px;color:#444;font-size:12px;border-top:1px solid #1a1a1a;margin-top:40px}
+        .footer a{color:#0068ff;text-decoration:none}
+    </style>
+</head>
+<body>
+
+    <div class="header">
+        <div class="logo">🎮 SHOPACC <span>THEPHI</span></div>
+        <a href="https://zalo.me/thephiuytin" target="_blank" class="zalo-btn">💬 Zalo Admin</a>
+    </div>
+
+    <div class="container">
+        <div class="title">
+            <h1>SHOPACC THEPHI</h1>
+            <p>Mua acc Free Fire giá rẻ - Uy tín - Chất lượng</p>
+        </div>
+        <div class="grid" id="accGrid"></div>
+    </div>
+
+    <!-- Modal mua hàng -->
+    <div class="modal" id="modal">
+        <div class="modal-box">
+            <h2>🛒 Xác nhận đơn hàng</h2>
+            <div class="info-box" id="accInfo"></div>
+            <button class="close-btn" onclick="closeModal()">Đóng</button>
+        </div>
+    </div>
+
+    <!-- Modal chi tiết -->
+    <div class="modal" id="detailModal">
+        <div class="modal-box">
+            <h2>📋 Chi tiết Acc</h2>
+            <div id="detailContent"></div>
+            <button class="close-btn" onclick="closeDetail()">Đóng</button>
+        </div>
+    </div>
+
+    <div class="footer">
+        &copy; 2026 SHOPACC THEPHI — Liên hệ: <a href="https://zalo.me/thephiuytin">zalo.me/thephiuytin</a>
+    </div>
+
+    <script>
+        const ZALO_LINK = "https://zalo.me/thephiuytin";
+        const ZALO_NAME = "thephiuytin";
+
+        async function loadAccs(){
+            try {
+                const res = await fetch('/api/accounts');
+                const data = await res.json();
+                const grid = document.getElementById('accGrid');
+                grid.innerHTML = '';
+                
+                if(Object.keys(data).length === 0){
+                    grid.innerHTML = '<p style="color:#666;text-align:center;grid-column:1/-1">Chưa có acc nào. Vui lòng quay lại sau.</p>';
+                    return;
+                }
+                
+                for(const [id, a] of Object.entries(data)){
+                    const sold = a.status !== 'available';
+                    const imgs = a.images || [];
+                    const firstImg = imgs.length > 0 ? imgs[0] : null;
+                    const imgHtml = firstImg 
+                        ? `<img src="${firstImg}" alt="${a.name}">${imgs.length>1?`<span class="img-badge">+${imgs.length-1} ảnh</span>`:''}` 
+                        : '🎮';
+                    
+                    const accJson = JSON.stringify({...a, id}).replace(/'/g,"&#39;");
+                    const imgsJson = JSON.stringify(imgs).replace(/'/g,"&#39;");
+                    const nameJson = JSON.stringify(a.name||"").replace(/'/g,"&#39;");
+                    
+                    grid.innerHTML += `
+                    <div class="card ${sold?'sold':''}">
+                        <div class="card-img">${imgHtml}</div>
+                        <div class="card-body">
+                            <h3>${a.name || 'Acc FF'}</h3>
+                            <div class="info"><span>Rank:</span><span>${a.rank || 'N/A'}</span></div>
+                            <div class="info"><span>Skin:</span><span>${a.skin || 0}</span></div>
+                            <div class="price">${(a.price||0).toLocaleString()}đ</div>
+                            <div class="btn-group">
+                                <button class="btn-detail" onclick='showDetail(${accJson})'>👁️ CHI TIẾT</button>
+                                <button class="btn-buy" ${sold?'disabled':''} 
+                                    onclick='contactZalo(${JSON.stringify(id)}, ${nameJson}, ${a.price||0}, ${imgsJson})'>
+                                    ${sold?'❌ ĐÃ BÁN':'💬 MUA'}
+                                </button>
+                            </div>
+                        </div>
+                    </div>`;
+                }
+            } catch(e){
+                console.error(e);
+            }
+        }
+
+        function showDetail(acc){
+            const imgs = acc.images || [];
+            let galleryHtml = '';
+            if(imgs.length > 0){
+                galleryHtml = `
+                    <div style="margin-top:10px">
+                        <div style="color:#888;font-size:12px;margin-bottom:5px">ẢNH ACC (${imgs.length}):</div>
+                        <div class="gallery">
+                            ${imgs.map(url => `<img src="${url}" onclick="window.open('${url}','_blank')">`).join('')}
+                        </div>
+                    </div>
+                `;
+            } else {
+                galleryHtml = '<div style="color:#666;text-align:center;padding:15px">Không có ảnh</div>';
+            }
+            
+            document.getElementById('detailContent').innerHTML = `
+                <div class="info-box">
+                    <div class="row"><span class="label">Mã acc:</span><span class="value" style="color:#ff5500">${acc.id}</span></div>
+                    <div class="row"><span class="label">Tên acc:</span><span class="value">${acc.name||'N/A'}</span></div>
+                    <div class="row"><span class="label">Username FF:</span><span class="value">${acc.username||'N/A'}</span></div>
+                    <div class="row"><span class="label">Rank:</span><span class="value">${acc.rank||'N/A'}</span></div>
+                    <div class="row"><span class="label">Skin:</span><span class="value">${acc.skin||0}</span></div>
+                    <div class="row"><span class="label">Giá:</span><span class="value" style="color:#ff5500;font-size:18px">${(acc.price||0).toLocaleString()}đ</span></div>
+                    <div class="row"><span class="label">Trạng thái:</span><span class="value" style="color:${acc.status==='available'?'#00ff88':'#ff0040'}">${acc.status==='available'?'Còn hàng':'Đã bán'}</span></div>
+                </div>
+                ${galleryHtml}
+                <div style="margin-top:15px">
+                    <a href="${ZALO_LINK}" target="_blank" class="zalo-link">💬 LIÊN HỆ ZALO MUA</a>
+                </div>
+            `;
+            document.getElementById('detailModal').style.display = 'flex';
+        }
+
+        function closeDetail(){ 
+            document.getElementById('detailModal').style.display='none'; 
+        }
+
+        function contactZalo(accId, accName, price, imgs){
+            let galleryHtml = '';
+            if(imgs && imgs.length > 0){
+                galleryHtml = `
+                    <div style="color:#888;font-size:12px;margin-top:10px">Ảnh acc:</div>
+                    <div class="gallery">
+                        ${imgs.map(url => `<img src="${url}" onclick="window.open('${url}','_blank')">`).join('')}
+                    </div>
+                `;
+            }
+            
+            document.getElementById('accInfo').innerHTML = `
+                <div class="row"><span class="label">Mã acc:</span><span class="value" style="color:#ff5500">${accId}</span></div>
+                <div class="row"><span class="label">Tên acc:</span><span class="value">${accName}</span></div>
+                <div class="row"><span class="label">Giá:</span><span class="value" style="color:#ff5500">${price.toLocaleString()}đ</span></div>
+                ${galleryHtml}
+                <hr style="margin:10px 0;border-color:#333">
+                <div style="color:#0068ff;font-weight:bold;text-align:center;margin-top:10px">📱 Liên hệ Zalo để mua:</div>
+                <div style="text-align:center;font-size:16px;color:#00ff88;margin:10px 0">zalo.me/${ZALO_NAME}</div>
+                <a href="${ZALO_LINK}" target="_blank" class="zalo-link">💬 MỞ ZALO</a>
+                <div style="color:#888;font-size:12px;margin-top:15px;text-align:center">
+                    Gửi tin nhắn với mã acc ở trên để được hỗ trợ
+                </div>
+            `;
+            document.getElementById('modal').style.display = 'flex';
+        }
+
+        function closeModal(){ document.getElementById('modal').style.display='none'; }
+
+        document.getElementById('modal').addEventListener('click', function(e){
+            if(e.target === this) closeModal();
+        });
+        document.getElementById('detailModal').addEventListener('click', function(e){
+            if(e.target === this) closeDetail();
+        });
+
+        loadAccs();
+        setInterval(loadAccs, 15000);
+    </script>
+</body>
+</html>

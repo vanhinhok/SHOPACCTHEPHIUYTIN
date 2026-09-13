@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <title>ADMIN LOGIN - SHOPACC THEPHI</title>
+    <style>
+        body{background:#0a0a0f;color:#c0c0c0;font-family:monospace;display:flex;justify-content:center;align-items:center;height:100vh;margin:0}
+        .box{background:#12121a;border:1px solid #2a2a3a;border-radius:12px;padding:30px;width:340px}
+        h2{color:#ff5500;text-align:center;margin-bottom:20px}
+        input{width:100%;padding:12px;margin:8px 0;background:#0a0a12;border:1px solid #1a1a2a;border-radius:6px;color:#e0e0e0;box-sizing:border-box}
+        button{width:100%;padding:12px;background:#ff5500;border:none;border-radius:6px;font-weight:bold;cursor:pointer;color:#fff;margin-top:10px}
+        button:hover{background:#ff7733}
+        .err{color:#ff0040;text-align:center;font-size:13px;margin-top:10px}
+    </style>
+</head>
+<body>
+    <div class="box">
+        <h2>🔐 ADMIN LOGIN</h2>
+        <form method="POST">
+            <input type="text" name="username" placeholder="Username" required>
+            <input type="password" name="password" placeholder="Password" required>
+            <button>ĐĂNG NHẬP</button>
+        </form>
+        {% if error %}<p class="err">{{ error }}</p>{% endif %}
+    </div>
+</body>
+</html>

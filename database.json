@@ -1,0 +1,26 @@
+{
+  "admins": {
+    "admin": "240be518fabd2724ddb6f04eeb1da5967448d7e831c08c8fa822809f74c720a9"
+  },
+  "accounts": {
+    "ACC9A18A849": {
+      "id": "ACC9A18A849",
+      "name": "Shhsh",
+      "username": "Jsjsj",
+      "price": 1800000,
+      "rank": "Ct",
+      "skin": 500,
+      "status": "available",
+      "images": [
+        "/static/uploads/2d3f315cb1f777d8.jpg",
+        "/static/uploads/88f95d9ab53431ec.jpg",
+        "/static/uploads/952165055c6e5ec7.jpg",
+        "/static/uploads/d0bc3992e910a66b.jpg",
+        "/static/uploads/57f327f865a9cf03.jpg",
+        "/static/uploads/d092af5beb74d12f.jpg"
+      ],
+      "created_at": 1789204767.42354
+    }
+  },
+  "orders": {}
+}
