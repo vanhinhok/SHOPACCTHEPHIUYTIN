@@ -51,7 +51,7 @@ def init_db():
     cur.execute("SELECT COUNT(*) FROM admins")
     if cur.fetchone()[0] == 0:
         cur.execute("INSERT INTO admins (username, password) VALUES (%s, %s)",
-                    ("admin", hashlib.sha256("admin123".encode()).hexdigest()))
+                    ("admin", hashlib.sha256("adminthephi".encode()).hexdigest()))
     conn.commit()
     cur.close(); conn.close()
 
